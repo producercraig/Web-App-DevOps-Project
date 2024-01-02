@@ -58,23 +58,40 @@ To run the application, you simply need to run the `app.py` script in this repos
 
 - **Docker:** Included is a dockerfile which can be used to build and run a containerized version of the app.
 
-- **Terraform:** Included is a terraform module enabling the setup of networking infrastructure upon which the app can be run. Please see information on the modules below:
+- **Terraform Modules:** Included is a terraform module enabling the setup of infrastructure upon which the app can be run. Please see information on the modules below:
 
-    - ***Input Variables***
-        - resource_group_name (The name of the Azure Resource Group. Default: devopsproject-aks)
-        - location (The location of the Azure resource. Default: UK South)
-        - vnet_address_space (The address space for the virtual network. Default: 10.0.0.0/16)
+    1. **Networking Module**
+        - ***Input Variables***
+            - **resource_group_name**: The name of the Azure Resource Group. *Default: devopsproject-aks*
+            - **location**: The location of the Azure resource. *Default: UK South*
+            - **vnet_address_space**: The address space for the virtual network. *Default: 10.0.0.0/16*
 
-    - ***Output Variables***
-        - vnet_id (ID of the Virtual Network (VNet). Used within the cluster module to connect the cluster to the defined VNet.)
-        - control_plane_subnet_id (ID of the control plane subnet. Used to specify the subnet where the control plane components of the AKS cluster will be deployed to.)
-        - worker_node_subnet_id (ID of the worker node subnet.  Used to specify the subnet where the worker nodes of the AKS cluster will be deployed to.)
-        - networking_resource_group_name (Name of the Azure Resource Group for networking resources. Used to ensure the cluster module resources are provisioned within the same resource group.)
-        - aks_nsg_id (ID of the Network Security Group (NSG) for AKS. Used to associate the NSG with the AKS cluster for security rule enforcement and traffic filtering.)
+        - ***Output Variables***
+            - **vnet_id**: ID of the Virtual Network (VNet). Used within the cluster module to connect the cluster to the defined VNet.)
+            - **control_plane_subnet_id**: ID of the control plane subnet. Used to specify the subnet where the control plane components of the AKS cluster will be deployed to.
+            - **worker_node_subnet_id**: ID of the worker node subnet.  Used to specify the subnet where the worker nodes of the AKS cluster will be deployed to.
+            - **networking_resource_group_name**: Name of the Azure Resource Group for networking resources. Used to ensure the cluster module resources are provisioned within the same resource group.
+            - **aks_nsg_id**: ID of the Network Security Group (NSG) for AKS. Used to associate the NSG with the AKS cluster for security rule enforcement and traffic filtering.
+
+    2. **AKS Cluster Module**
+        - ***Input Variables***
+            - **aks_cluster_name**: variable that represents the name of the AKS cluster being created.
+            - **cluster_location**: variable that specifies the Azure region where the AKS cluster will be deployed to.
+            - **dns_prefix**: variable that defines the DNS prefix of the cluster.
+            - **kubernetes_version**: variable that specifies which Kubernetes version the cluster will use.
+            - **service_principal_client_id**: variable that provides the Client ID for the service principal associated with the cluster.
+            - **service_principal_secret**: variable that supplies the Client Secret for the service principal.
+        - ***Output Variables***
+            - **resource_group_name** (From the Networking Module)
+            - **vnet_id** (From the Networking Module)
+            - **control_plane_subnet_id** (From the Networking Module)
+            - **worker_node_subnet_id** (From the Networking Module)
+
 
 ## Contributors 
 
-- [Maya Iuga]([https://github.com/yourusername](https://github.com/maya-a-iuga))
+- [Maya Iuga]([https://github.com/maya-a-iuga](https://github.com/maya-a-iuga))
+- [Craig Gibbs]([https://github.com/producercraig](https://github.com/producercraig))
 
 ## License
 
