@@ -7,6 +7,7 @@ Welcome to the Web App DevOps Project repo! This application allows you to effic
 - [Features](#features)
 - [Getting Started](#getting-started)
 - [Technology Stack](#technology-stack)
+- [Infrastructure](#infrastructure)
 - [Contributors](#contributors)
 - [License](#license)
 
@@ -52,6 +53,24 @@ To run the application, you simply need to run the `app.py` script in this repos
 - **Frontend:** The user interface is designed using HTML, CSS, and JavaScript to ensure a smooth and intuitive user experience.
 
 - **Database:** The application employs an Azure SQL Database as its database system to store order-related data.
+
+## Infrastructure
+
+- **Docker:** Included is a dockerfile which can be used to build and run a containerized version of the app.
+
+- **Terraform:** Included is a terraform module enabling the setup of networking infrastructure upon which the app can be run. Please see information on the modules below:
+
+    - ***Input Variables***
+        - resource_group_name (The name of the Azure Resource Group. Default: devopsproject-aks)
+        - location (The location of the Azure resource. Default: UK South)
+        - vnet_address_space (The address space for the virtual network. Default: 10.0.0.0/16)
+
+    - ***Output Variables***
+        - vnet_id (ID of the Virtual Network (VNet). Used within the cluster module to connect the cluster to the defined VNet.)
+        - control_plane_subnet_id (ID of the control plane subnet. Used to specify the subnet where the control plane components of the AKS cluster will be deployed to.)
+        - worker_node_subnet_id (ID of the worker node subnet.  Used to specify the subnet where the worker nodes of the AKS cluster will be deployed to.)
+        - networking_resource_group_name (Name of the Azure Resource Group for networking resources. Used to ensure the cluster module resources are provisioned within the same resource group.)
+        - aks_nsg_id (ID of the Network Security Group (NSG) for AKS. Used to associate the NSG with the AKS cluster for security rule enforcement and traffic filtering.)
 
 ## Contributors 
 
