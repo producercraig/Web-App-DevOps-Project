@@ -46,3 +46,7 @@ variable "control_plane_subnet_id" {
 variable "worker_node_subnet_id" {
     type = string
 }
+
+variable "aks_nsg_id" {
+    type = string
+}
