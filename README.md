@@ -8,6 +8,8 @@ Welcome to the Web App DevOps Project repo! This application allows you to effic
 - [Getting Started](#getting-started)
 - [Technology Stack](#technology-stack)
 - [Infrastructure](#infrastructure)
+- [Deployment](#deployment)
+- [Testing](#testing)
 - [Contributors](#contributors)
 - [License](#license)
 
@@ -93,6 +95,41 @@ To run the application, you simply need to run the `app.py` script in this repos
             - **vnet_id** (From the Networking Module)
             - **control_plane_subnet_id** (From the Networking Module)
             - **worker_node_subnet_id** (From the Networking Module)
+
+## Deployment
+
+- **Kubernetes**
+    - ***Deployment Manifest***: The deployment manifest (top section of **application-manifest.yaml**) declares a Kubernetes deployment named *flask-app-deployment*. It has the following characteristics:
+        - **Name**: flask-app-deployment
+        - **App**: flask-app (this is the name assigned to the web app upon deployment for the purposes of selection/port opening via the associated service.)
+        - **Update Strategy**: RollingUpdate, with a max surge of **1** and a max unavailable of **1**. This means that when rolling updates are applied, the deployment is able to create one additional replica if required, to ensure no downtime. The max unavailable of 1 should also ensure that only one pod is being updated at a time. This strategy also allows for rollbacks in the event of an update occuring which causes issues.
+        - **Image**: The image for the app is hosted on dockerhub, with the name/tag of **producercraig/devopsproject:0.1**. The tag would ideally be changed to 'latest' during any external rollout to ensure that the application image is kept up-to-date.
+        - **Container Port**: The port provided is 5000, which matches the port opened in the above Terraform configuration. This allows access to the web app.
+    - ***Service Manifest***: The service manifest (bottom section of **application-manifest.yaml**) declares a Kubernetes service named *flask-app-service*. It has the following characteristics:
+        - **Name**: flask-app-service
+        - **Type**: ClusterIP - this was chosen to allow internal access of the web app while in development.
+        - **Ports**: Traffic received on port 80 (via a web browser) is forwarded to the target port of 5000, as detailed above.
+
+## Testing & Distribution
+
+- **Functional Testing**
+    - The app was tested by port forwarding port 5000 on localhost, to access the web app and ensure that all functionality was behaving as intended.
+- **Load Testing**
+    - As the app has been declared with 2 replicas, it would be beneficial to perform load testing to simulate traffic and ensure that the application performs well under load.
+- **Validation & Monitoring**
+    - It would be beneficial to implement a monitoring solution (perhaps within Azure) to track the application's performance and overall health. This would help in catching and addressing any issues.
+- **Internal Access**
+    - Internal access could be granted by way of RBAC to manage which users can access the application within the cluster, to further improve security and assist with testing & further development.
+    - Steps involved:
+        1. Configure a Kubernetes Service (like the flask-app-service defined above) to expose the application within the internal network.
+        2. Use Kubernetes namespaces to isolate the application and control access as required.
+- **External Access**
+    - For external access, an ingress controller would be required to provide an entry point for external traffic and routing it to *flask-app-servive* as defined above. SSL certification would be a consideration here also, to enable secure HTTPS access.
+    - Steps involved:
+        1. Deploy an Ingress resource to expose the service externally.
+        2. Configure DNS to point to the Ingress controller's external IP.
+        3. Apply SSL certificate for secure HTTPS access.
+    
 
 
 
