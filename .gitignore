@@ -1,0 +1,10 @@
+*terraform.tfstate
+*terraform.tfstate.backup
+*.terraform/
+*.terraform
+*.terraform.lock.hcl
+*my_aks_kubeconfig.yaml
+*terraform.tfstate
+*terraform.tfstate.backup
+*.env
+*credentials.yaml
