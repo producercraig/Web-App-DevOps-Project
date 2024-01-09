@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: flask-app
-        image: producercraig/devopsproject:0.1
+        image: producercraig/devopsproject:latest
         ports:
         - containerPort: 5000
 ---

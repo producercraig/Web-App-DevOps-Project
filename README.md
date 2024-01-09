@@ -10,6 +10,7 @@ Welcome to the Web App DevOps Project repo! This application allows you to effic
 - [Infrastructure](#infrastructure)
 - [Deployment](#deployment)
 - [Testing](#testing)
+- [CI/CD Pipeline](#ci/cd-pipeline)
 - [Contributors](#contributors)
 - [License](#license)
 
@@ -130,7 +131,21 @@ To run the application, you simply need to run the `app.py` script in this repos
         2. Configure DNS to point to the Ingress controller's external IP.
         3. Apply SSL certificate for secure HTTPS access.
     
+## CI/CD Pipeline
 
+- **Source Repository**
+    - The Azure DevOps hosted repo is cloned from the github repo.
+    - Hosting the repo on Azure DevOps allows for use of the CI/CD pipeline tools, as demonstrated below with the build pipeline.
+
+- **Build Pipeline**
+
+    ![Azure DevOps pipeline](media/pipeline-config.png)
+
+- **Testing & Validation**
+    - All service connections were verified upon creation in Azure DevOps.
+    - The build pipeline was initially unsuccessful due to the **parallelism** setting within Azure DevOps being set to a value of **0**. This was resolved by changing the maximum parallel tasks to a value of **1**, enabling the pipeline to run.
+    - The build pipeline was then confirmed to run successfully, with the status of pods/the deployment being confirmed via use of **kubectl get pods**, and **kubectl get deployments** within the correct kubeconfig context.
+    - Upon completion of the build pipeline, Docker Hub was checked to ensure that the Docker build was successfully pushed to the hub.
 
 
 ## Contributors 
