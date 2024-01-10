@@ -3,17 +3,26 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 import pyodbc
 import os
+
+# Key Vault URL
+key_vault_url = "https://cg-devops-key-vault.vault.azure.net/"
+
+# Key Vault managed identity
+credential = DefaultAzureCredential()
+secret_client = SecretClient(vault_url=key_vault_url, credential=credential)
 
 # Initialise Flask App
 app = Flask(__name__)
 
-# database connection 
-server = 'devops-project-server.database.windows.net'
-database = 'orders-db'
-username = 'maya'
-password = 'AiCore1237'
+# database connection with Key Vault secret values
+server = secret_client.get_secret("server").value
+database = secret_client.get_secret("database").value
+username = secret_client.get_secret("username").value
+password = secret_client.get_secret("password").value
 driver= '{ODBC Driver 18 for SQL Server}'
 
 # Create the connection string

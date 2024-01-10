@@ -4,15 +4,20 @@ Welcome to the Web App DevOps Project repo! This application allows you to effic
 
 ## Table of Contents
 
+- [Project Structure](#project-structure-uml)
 - [Features](#features)
 - [Getting Started](#getting-started)
 - [Technology Stack](#technology-stack)
 - [Infrastructure](#infrastructure)
 - [Deployment](#deployment)
-- [Testing](#testing)
-- [CI/CD Pipeline](#ci/cd-pipeline)
+- [Testing](#testing--distribution)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Monitoring](#monitoring)
 - [Contributors](#contributors)
 - [License](#license)
+
+## Project Structure (UML)
+![UML diagram explaining project structure](media/project-uml.png)
 
 ## Features
 
@@ -34,12 +39,15 @@ Welcome to the Web App DevOps Project repo! This application allows you to effic
 
 ### Prerequisites
 
-For the application to succesfully run, you need to install the following packages:
+For the application to succesfully run, you need to install the following packages, in addition to a valid Azure subscription:
 
 - flask (version 2.2.2)
 - pyodbc (version 4.0.39)
 - SQLAlchemy (version 2.0.21)
 - werkzeug (version 2.2.3)
+- azure-identity (version 1.15.0)
+- azure-keyvault-secrets (version 4.7.0)
+- chardet (version 4.0.0)
 
 ### Usage
 
@@ -60,6 +68,17 @@ To run the application, you simply need to run the `app.py` script in this repos
 ## Infrastructure
 
 - **Docker:** Included is a dockerfile which can be used to build and run a containerized version of the app.
+    - ***dockerfile***
+        - **Base Image Selection**: The Dockerfile begins with **FROM python:3.8-slim** which uses an official Python runtime as the base image. This is a lightweight version of Python 3.8.
+        - **Setting the Working Directory**: **WORKDIR /app** sets the working directory to /app inside the container. This is where the application files will reside.
+        - **Copying Application Files**: **COPY . /app** copies the application files from the current directory into the /app directory inside the container.
+        - **Exposing Ports**: **EXPOSE 5000** makes port 5000 available to the host and other containers.
+        
+    - ***Docker Commands used***
+        - **docker build -t devopsproject:latest .** builds a Docker image from the Dockerfile in the current directory, tagging it as devopsproject:latest.
+        - **docker run -d -p 5000:5000 myapp:latest** runs a container in detached mode, mapping port 5000 of the host to port 5000 in the container, using the devopsproject:latest image. Detached mode allows the container to run in the background.
+        - **docker push producercraig/devopsproject:latest** pushes the tagged image to Docker Hub.
+        - **docker pull producercraig/devopsproject:latest** pulls the image. The container can then be run using the run command as detailed above.
 
 - **Terraform Modules:** Included is a terraform module enabling the setup of infrastructure upon which the app can be run. Please see information on the modules below:
 
@@ -69,7 +88,7 @@ To run the application, you simply need to run the `app.py` script in this repos
         - ***Resources***
             - **Provider: Azurerm**: The resource provider defined in main.tf. Running version *3.0.0*.
             - **Module integration**: The *networking-module* and *aks-cluster-module* are both referenced here, with input values declared for both.
-            - **Credentials**: All credentials/secrets have been removed from main.tf - these will need to be entered in order to apply the configuration to Azure.
+            - **Credentials**: All credentials/secrets are declared as input variables in **variables.tf** and stored in a private file.
     2. **Networking Module**
         - ***Input Variables***
             - **resource_group_name**: The name of the Azure Resource Group. *Default: devopsproject-aks*
@@ -147,6 +166,82 @@ To run the application, you simply need to run the `app.py` script in this repos
     - The build pipeline was then confirmed to run successfully, with the status of pods/the deployment being confirmed via use of **kubectl get pods**, and **kubectl get deployments** within the correct kubeconfig context.
     - Upon completion of the build pipeline, Docker Hub was checked to ensure that the Docker build was successfully pushed to the hub.
 
+## Monitoring
+
+- **Dashboard**
+A dashboard was created with the metrics from the below 'Metrics Explorer' section. It can be seen here:
+![Metrics dashboard](media/metrics-dashboard.png)
+
+- **Metrics Explorer**
+    - ***Average Node CPU Usage***: Measures the average CPU usage across all nodes. This metric indicates the overall CPU load and is useful in understanding how heavily the nodes are working. Higher values here would suggest increased CPU activity. Consistently high values might indicate the need for more resources.
+    - ***Average Pod Count***: Represents the average number of pods running across the cluster. It gives a sense of the scale and utilisation of the Kubernetes cluster. An increasing trend could imply scaling up of services, whereas a decreasing trend might indicate scaling down or potential issues.
+    - ***Used Disk Percentage***: Indicates the percentage of disk space being used. It's a key metric for understanding storage capacity. If the disk is almost full, it could lead to service disruptions. It’s important to monitor this to avoid running out of storage space.
+    - ***Bytes Read and Written per Second***: Tracks the rate of data read from and written to the storage. Sudden spikes or drops could indicate change in usage.
+- **Log Analytics**
+    - ***Average Node CPU Usage Percentage per Minute***: Shows the minute-by-minute CPU usage percentage for each node. This could be useful for identifying short-term spikes or drops in CPU usage.
+    - ***Average Node Memory Usage Percentage per Minute***: Measures how much memory is being used on each node, updated every minute. Consistently high memory usage might necessitate scaling up resources or optimising applications.
+    - ***Pods Counts with Phase***: Displays the number of pods in different phases (eg, Running, Pending, Failed) within the cluster. Several pods in 'Pending' or 'Failed' states might indicate issues with resources or config errors.
+    - ***Find Warning Value in Container Logs***: Searches container logs for warning messages. Regular occurrences of warnings might signal underlying issues in the application or infrastructure configuration.
+    - ***Kubernetes Events***: Lists significant events in the Kubernetes cluster. This helps in tracking deployments, errors, and other important events.
+- **Alerts**
+    - ***Disk Used Percentage Alert***: Triggers an alert when the disk usage exceeds 80% capacity and sends an email notification. Receiving this alert means action is required to increase disk capacity.
+
+        **Response Actions**
+
+        1. Quickly check the current disk usage and identify the nodes or pods consuming the most space. If temporary files or logs are causing the high usage, clean them up.
+        2. If the disk usage is high due to workload needs, defining a persistent volume and configuring the application-manifest.yaml to make a volume claim would be effective.
+        3. Continuously monitor disk usage to ensure the problem is resolved.
+
+    - ***Memory Working Set Percentage Alert***: Triggers an alert when the working set memory usage crosses a certain percentage. It indicates that applications or nodes might soon run out of memory, necessitating either scaling up resources or optimising memory usage.
+
+        **Response Actions**
+
+        1. Determine which pods or services are using excessive memory.
+        2. Consider if the high memory usage is due to inefficient application code or resource-intensive tasks and optimise the app if required.
+        3. Increase the memory allocation to the nodes or scale the number of nodes in the cluster. This would be handled in the aks-cluster module of terraform in this project.
+
+## Azure Key Vault
+
+**Azure Key Vault Setup & Permissions**
+
+- The Azure Key Vault, named **cg-devops-key-vault**, is configured to securely store secrets for use with the app. It can also be used to set up and manage other sensitive information such as keys and certificates. 
+
+- **Key Vault Administrator**: My own user account has been granted Key Vault Administrator privileges. This role allows for comprehensive management of the Key Vault, including configuring access policies, managing stored secrets, keys, and certificates. In this instance it was used to add the relevant secrets to the vault.
+
+- **Key Vault Officer for AKS**: A managed identity for the AKS cluster has been assigned the role of Key Vault Officer. This role is essential for allowing the AKS cluster to access necessary secrets without exposing sensitive credentials.
+
+- **Stored Secrets**
+
+    The Key Vault contains secrets which are essential to the application's operation. These are:
+
+    - **Server**: The address of the database server.
+    - **Database**: The name of the specific database within the server.
+    - **Username**: The username for database access.
+    - **Password**: The corresponding password for database access.
+
+    Each secret is vital for establishing a secure connection to the database. They are stored in the Key Vault to enhance security by avoiding hardcoding sensitive details within the application code.
+
+- **Integration of AKS with Key Vault**
+
+    To allow the AKS cluster to securely retrieve secrets from the Key Vault, several steps were taken:
+
+    1. A managed identity was created for the AKS cluster. This identity serves as a secure way for AKS to access Azure services, including the Key Vault.
+
+    2. The managed identity was granted the Key Vault Officer role. This ensures it has the necessary permissions to retrieve secrets from the Key Vault but not to manage the Key Vault itself.
+
+- **Application Code Modifications for Secure Secret Retrieval**
+
+    The application code has been modified to leverage managed identity credentials for secure secret retrieval. Key changes include:
+
+    1. The code imports **azure.identity** and **azure.keyvault.secrets**, allowing it to interact with Azure services.
+
+    2. **DefaultAzureCredential()** is used to authenticate the managed identity with Azure services.
+
+    3. **SecretClient** is initialised with the Key Vault URL and the credential from the managed identity.
+
+    4. The application code retrieves the database server, database name, username, and password from the Key Vault using **secret_client.get_secret("...").value**.
+
+    5. These values are then used to establish a database connection, ensuring that sensitive information is not hardcoded into the application but securely pulled from the Key Vault.
 
 ## Contributors 
 
