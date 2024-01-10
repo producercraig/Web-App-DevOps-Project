@@ -123,7 +123,7 @@ To run the application, you simply need to run the `app.py` script in this repos
         - **Name**: flask-app-deployment
         - **App**: flask-app (this is the name assigned to the web app upon deployment for the purposes of selection/port opening via the associated service.)
         - **Update Strategy**: RollingUpdate, with a max surge of **1** and a max unavailable of **1**. This means that when rolling updates are applied, the deployment is able to create one additional replica if required, to ensure no downtime. The max unavailable of 1 should also ensure that only one pod is being updated at a time. This strategy also allows for rollbacks in the event of an update occuring which causes issues.
-        - **Image**: The image for the app is hosted on dockerhub, with the name/tag of **producercraig/devopsproject:0.1**. The tag would ideally be changed to 'latest' during any external rollout to ensure that the application image is kept up-to-date.
+        - **Image**: The image for the app is hosted on dockerhub, with the name/tag of **producercraig/devopsproject:latest**. The tag would ideally be changed to 'latest' during any external rollout to ensure that the application image is kept up-to-date.
         - **Container Port**: The port provided is 5000, which matches the port opened in the above Terraform configuration. This allows access to the web app.
     - ***Service Manifest***: The service manifest (bottom section of **application-manifest.yaml**) declares a Kubernetes service named *flask-app-service*. It has the following characteristics:
         - **Name**: flask-app-service
@@ -192,7 +192,7 @@ A dashboard was created with the metrics from the below 'Metrics Explorer' secti
         2. If the disk usage is high due to workload needs, defining a persistent volume and configuring the application-manifest.yaml to make a volume claim would be effective.
         3. Continuously monitor disk usage to ensure the problem is resolved.
 
-    - ***Memory Working Set Percentage Alert***: Triggers an alert when the working set memory usage crosses a certain percentage. It indicates that applications or nodes might soon run out of memory, necessitating either scaling up resources or optimising memory usage.
+    - ***Memory Working Set Percentage Alert***: Triggers an alert when the working set memory usage exceeds 80%. It indicates that applications or nodes might soon run out of memory, and might require either scaling up resources or optimising memory usage.
 
         **Response Actions**
 
